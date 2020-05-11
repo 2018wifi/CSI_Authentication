@@ -6,7 +6,12 @@ PCAP_SIZE = 3 * 50  # 每个pcap包含的CSI数组个数
 
 
 # get_data
-
+RASP_IP1 = "192.168.0.100"
+RASP_IP2 = "192.168.0.101"
+RASP_IP3 = "192.168.0.102"
+PORT1 = 9000
+PORT2 = 9001
+PORT3 = 9002
 
 
 # process
