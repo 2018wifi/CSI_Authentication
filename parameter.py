@@ -18,6 +18,10 @@ PORT3 = 9002
 MODEL_PATH = 'model.pkl'
 
 
+# plot
+PST = [(1., 2.), (5., 3.), (6., 9.)]
+
+
 # model
 T_NUM = 6 # 位置数量
 T_SIZE = 70 # 每个位置的包的数量
