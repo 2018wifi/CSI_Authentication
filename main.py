@@ -16,7 +16,7 @@ if __name__ == '__main__':
     from plot import plot
 
     t1 = threading.Thread(target=get_data)
-    t1.start()
+    #t1.start()
     t2 = threading.Thread(target=process)
     t2.start()
     t3 = threading.Thread(target=plot)
