@@ -9,10 +9,10 @@ import os
 import torch.optim.lr_scheduler as lr_scheduler
 
 
-if torch.cuda.is_available():
-    device = torch.device('cuda')
-else:
-    device = torch.device('cpu')
+# if torch.cuda.is_available():
+#     device = torch.device('cuda')
+# else:
+device = torch.device('cpu')
 
 
 class Net(torch.nn.Module):
