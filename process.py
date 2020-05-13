@@ -9,6 +9,7 @@ import torch
 def process():
     model = Net(PCAP_SIZE, NFFT, OUTPUT_SIZE).to(device)
     model.load_state_dict(torch.load(MODEL_PATH))
+    print('模型加载成功', model)
     while True:
         if not queue1.empty():
             with lock1:

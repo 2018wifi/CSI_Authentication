@@ -2,7 +2,7 @@
 DEBUG = True # 调试模式开关
 BW = 20  # 带宽
 NFFT = int(BW * 3.2)
-PCAP_SIZE = 3 * 50  # 每个pcap包含的CSI数组个数
+PCAP_SIZE = 100  # 每个pcap包含的CSI数组个数
 
 
 # get_data
@@ -23,8 +23,8 @@ PST = [(1., 2.), (5., 3.), (6., 9.)]
 
 
 # model
-T_NUM = 6 # 位置数量
-T_SIZE = 70 # 每个位置的包的数量
+T_NUM = 3 # 位置数量
+T_SIZE = 50 # 每个位置的包的数量
 LOAD_EXISTING_DATA = True
 SAVE_DATA = True
 INPUT_SIZE = PCAP_SIZE * NFFT
