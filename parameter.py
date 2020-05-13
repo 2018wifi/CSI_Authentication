@@ -6,6 +6,7 @@ PCAP_SIZE = 100  # 每个pcap包含的CSI数组个数
 
 
 # get_data
+RASP_NUM = 2                    # 树莓派数量
 RASP_IP1 = "192.168.0.104"
 RASP_IP2 = "192.168.0.105"
 RASP_IP3 = "192.168.0.106"

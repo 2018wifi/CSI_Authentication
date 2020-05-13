@@ -10,6 +10,8 @@ from main import queue1 as queue
 from main import lock1 as lock
 
 lock1 = threading.Lock()
+lock2 = threading.Lock()                                 # 用于同步三个树莓派的lock（目前仅用于锁connected_flag变量）
+connected_flag = 0                                       # 连接成功数
 reset = False                                            # 三个接收CSI包的线程是否从头开始写入缓冲区
 matrix = np.zeros((PCAP_SIZE, NFFT), dtype=np.complex)   # 缓冲区
 tlist = np.zeros((PCAP_SIZE), dtype=np.long)             # 和缓冲区中每一行对应的时间戳表，精度是毫秒级
@@ -20,10 +22,8 @@ def get_data():
     receiver_A.start()
     receiver_B = threading.Thread(target=receive_data, args=(1,))
     receiver_B.start()
-    receiver_C = threading.Thread(target=receive_data, args=(2,))
-    receiver_C.start()
-    receiver_C = threading.Thread(target=receive_data, args=(2,))
-    receiver_C.start()
+    # receiver_C = threading.Thread(target=receive_data, args=(2,))
+    # receiver_C.start()
 
     preprocesser = threading.Thread(target=preprocess_data)
     preprocesser.start()
@@ -32,6 +32,7 @@ def get_data():
 
 def receive_data(num):          # 参数为对接的树莓派编号
     wriPos = 50 * num           # 缓冲区指针（指向下一个要写入CSI的位置）
+    global connected_flag
 
     if num == 0:
         port = PORT1
@@ -48,10 +49,14 @@ def receive_data(num):          # 参数为对接的树莓派编号
 
     client_socket, _ = tcp_socket.accept()
 
-    print("connected successfully in port: ", port)
+    print("connected successfully on port: ", port)
+    with lock2:
+        connected_flag += 1
 
     while True:
         buffer = client_socket.recv(65535)
+        if len(buffer) != 274:              # 舍弃大小不正确的包
+            continue
         data = parse(buffer)
         vector = read_csi(data)
 
@@ -75,7 +80,7 @@ def preprocess_data():
     ls = int(time.time())       # 上一秒
     ns = int(time.time())       # 当前秒
     while True:
-        if ns != ls:            # 跨越到新的一秒时
+        if ns != ls and connected_flag == RASP_NUM:            # 跨越到新的一秒时，且所有树莓派都成功连接时
             print("new second: ", ns)
             ls = ns
             with lock1:
@@ -131,6 +136,7 @@ def read_csi(data):     # 提取CSI信息，并转换成矩阵
     csi = np.zeros(NFFT, dtype=np.complex)
     sourceData = data[18:]
     sourceData.dtype = np.int16
+    print(len(sourceData))
     csi_data = sourceData.reshape(-1, 2).tolist()
 
     i = 0
@@ -149,14 +155,14 @@ def fill_blanks(pmatrix, ptlist):
             blank_count[0] = 50 - i
         if ptlist[i + 50] == 0 and blank_count[1] == -1:
             blank_count[1] = 100 - i
-        if ptlist[i + 100] == 0 and blank_count[2] == -1:
-            blank_count[2] = 150 - i    
+        # if ptlist[i + 100] == 0 and blank_count[2] == -1:
+        #     blank_count[2] = 150 - i
     if blank_count[0] == -1:
         blank_count[0] = 0
     if blank_count[1] == -1:
         blank_count[1] = 0
-    if blank_count[2] == -1:
-        blank_count[2] = 0
+    # if blank_count[2] == -1:
+    #     blank_count[2] = 0
 
     
 def fill(blank_count, pmatrix, ptlist):
