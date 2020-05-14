@@ -14,7 +14,9 @@ def process():
         if not queue1.empty():
             with lock1:
                 data = queue1.get()
+            data = torch.from_numpy(data.astype('double'))
             data = data.to(device)
+            data = torch.reshape(data, (1, 1, PCAP_SIZE, NFFT))
             result = model(data)
             if DEBUG:
                 print(result)

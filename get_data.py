@@ -10,9 +10,11 @@ from main import queue1 as queue
 from main import lock1 as lock
 
 lock1 = threading.Lock()
-lock2 = threading.Lock()                                 # 用于同步三个树莓派的lock（目前仅用于锁connected_flag变量）
-connected_flag = 0                                       # 连接成功数
-reset = False                                            # 三个接收CSI包的线程是否从头开始写入缓冲区
+# lock2 = threading.Lock()                                 # 用于同步三个树莓派的lock（目前仅用于锁connected_flag变量）
+# connected_flag = 0                                       # 连接成功数
+reset1 = False                                           # receiver1是否从头开始写入缓冲区
+reset2 = False
+reset3 = False
 matrix = np.zeros((PCAP_SIZE, NFFT), dtype=np.complex)   # 缓冲区
 tlist = np.zeros((PCAP_SIZE), dtype=np.long)             # 和缓冲区中每一行对应的时间戳表，精度是毫秒级
 
@@ -32,6 +34,10 @@ def get_data():
 
 def receive_data(num):          # 参数为对接的树莓派编号
     wriPos = 50 * num           # 缓冲区指针（指向下一个要写入CSI的位置）
+    pck_count = 0               # 包数每秒
+    global reset1
+    global reset2
+    global reset3
     global connected_flag
 
     if num == 0:
@@ -41,69 +47,77 @@ def receive_data(num):          # 参数为对接的树莓派编号
     elif num == 2:
         port = PORT3
     
-    tcp_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-    tcp_socket.bind(("", port))
-    tcp_socket.listen(128)
-
-    print("waiting...")
-
-    client_socket, _ = tcp_socket.accept()
-
-    print("connected successfully on port: ", port)
-    with lock2:
-        connected_flag += 1
+    udp_socket = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+    udp_socket.bind(("", port))
 
     while True:
-        buffer = client_socket.recv(65535)
-        if len(buffer) != 274:              # 舍弃大小不正确的包
+        if num == 0 and reset1:  # 检查是否重置
+            print(wriPos, port)
+            wriPos = 50 * num
+            reset1 = False
+        elif num == 1 and reset2:
+            print(wriPos, port)
+            wriPos = 50 * num
+            reset2 = False
+        elif num == 2 and reset3:
+            print(wriPos, port)
+            wriPos = 50 * num
+            reset3 = False
+
+        buffer = udp_socket.recv(1024)
+        pck_count += 1
+        if len(buffer) != 274:  # 舍弃大小不正确的包
             continue
         data = parse(buffer)
         vector = read_csi(data)
 
         with lock1:
-            if reset:                       # 检查是否重置
-                wriPos = 50 * num
-                reset = False
-
             if wriPos < 50 * (num + 1):     # 写入缓冲区（溢出的包丢弃）
                 matrix[wriPos] = vector
-                tlist[wriPos] = int(round(time.time() * 1000))      # 记录时间戳
-                print(num, "\twrite a line in buffer")
-    # tcp_socket.close()
+                tlist[wriPos] = int(round(time.time() * 1000)) - DATE_DELTA      # 记录时间戳
+                wriPos += 1
 
 '''预处理数据'''
 
 def preprocess_data():
-    global reset
+    global reset1
+    global reset2
+    global reset3
     global matrix
     global tlist
     ls = int(time.time())       # 上一秒
     ns = int(time.time())       # 当前秒
     while True:
-        if ns != ls and connected_flag == RASP_NUM:            # 跨越到新的一秒时，且所有树莓派都成功连接时
+        if ns != ls:            # 跨越到新的一秒时
             print("new second: ", ns)
             ls = ns
             with lock1:
+                # print(matrix)
                 pmatrix = copy.deepcopy(matrix)
                 ptlist = copy.deepcopy(tlist)
-                reset = True
+                reset1 = True
+                reset2 = True
+                reset3 = True
                 matrix = np.zeros((PCAP_SIZE, NFFT), dtype=np.complex)
                 tlist = np.zeros((PCAP_SIZE), dtype=np.long)
-                print("Copied the matrix and tlist")
+                # print("Copied the matrix and tlist")
             pmatrix = np.abs(pmatrix)               # 将复数矩阵求模运算
+            # print(pmatrix)
+            print(tlist)
             fill_blanks(pmatrix, ptlist)            # 插值
             print("fill the blank")
+            print(tlist)
             for i in range(pmatrix.shape[0]):       # 幅值置零，归一化
                 for j in [0, 29, 30, 31, 32, 33, 34, 35]:
                     pmatrix[i][j] = 0     
                 csi_max = pmatrix[i].max()
                 for k in range(pmatrix.shape[1]):
                     pmatrix[i][k] = pmatrix[i][k] / csi_max
-            print("set 0 to some column and normalization")
-            print("result:\n", pmatrix)
+            # print("set 0 to some column and normalization")
+            # print("result:\n", pmatrix)
             with lock:
                 queue.put(pmatrix)          # 将处理好的数据插入队列中
-                print("put the data to queue")
+                # print("put the data to queue")
         ls = int(time.time())
         ns = int(time.time())
 
@@ -136,7 +150,6 @@ def read_csi(data):     # 提取CSI信息，并转换成矩阵
     csi = np.zeros(NFFT, dtype=np.complex)
     sourceData = data[18:]
     sourceData.dtype = np.int16
-    print(len(sourceData))
     csi_data = sourceData.reshape(-1, 2).tolist()
 
     i = 0
