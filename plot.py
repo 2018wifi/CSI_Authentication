@@ -11,40 +11,6 @@ def goto(turtle, i, color_list):
         turtle.goto(p)
 
 def plot():
-    # 参数初始化
-    color_list = []
-    for r in range(255, -1, -5):
-        color_list.append((r, 255, 0))
-    turtle.colormode(255)
-    turtle.setworldcoordinates(0, 0, LENGTH, WIDTH)
-    turtle.shape('triangle')
-    turtle.pensize(10)
-    # 快速画出边界和网格
-    turtle.hideturtle()
-    turtle.speed(0)
-    turtle.color('red')
-    turtle.goto((0, WIDTH))
-    turtle.goto((LENGTH, WIDTH))
-    turtle.goto((LENGTH, 0))
-    turtle.goto((0, 0))
-    turtle.showturtle()
-    turtle.color('grey')
-    turtle.pensize(0.01)
-    for i in range(1, LENGTH):
-        turtle.penup()
-        turtle.setposition(i, 0)
-        turtle.pendown()
-        turtle.goto(i, WIDTH)
-    for i in range(1, WIDTH):
-        turtle.penup()
-        turtle.setposition(0, i)
-        turtle.pendown()
-        turtle.goto(LENGTH, i)
-    turtle.penup()
-    turtle.pensize(5)
-    turtle.home()
-    is_first = True
-    last_pos = (0, 0)
     # while True:
         # goto(turtle, 0, color_list)
         # turtle.dot(20, "blue")
@@ -64,8 +30,4 @@ def plot():
         if not queue.empty():
             with lock:
                 data = queue.get()
-                goto(turtle, data, color_list)
-                last_pos = data
-        else:
-            goto(turtle, last_pos, color_list)
-plot()
+                print(data)
