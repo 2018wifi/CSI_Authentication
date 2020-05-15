@@ -16,7 +16,7 @@ reset1 = False                                           # receiver1是否从头
 reset2 = False
 reset3 = False
 matrix = np.zeros((PCAP_SIZE, NFFT), dtype=np.complex)   # 缓冲区
-tlist = np.zeros((PCAP_SIZE), dtype=np.long)             # 和缓冲区中每一行对应的时间戳表，精度是毫秒级
+tlist = np.zeros(PCAP_SIZE, dtype=np.long)             # 和缓冲区中每一行对应的时间戳表，精度是毫秒级
 
 
 def get_data():
@@ -52,15 +52,15 @@ def receive_data(num):          # 参数为对接的树莓派编号
 
     while True:
         if num == 0 and reset1:  # 检查是否重置
-            print(wriPos, port)
+            # print(wriPos, port)
             wriPos = 50 * num
             reset1 = False
         elif num == 1 and reset2:
-            print(wriPos, port)
+            # print(wriPos, port)
             wriPos = 50 * num
             reset2 = False
         elif num == 2 and reset3:
-            print(wriPos, port)
+            # print(wriPos, port)
             wriPos = 50 * num
             reset3 = False
 
@@ -74,7 +74,7 @@ def receive_data(num):          # 参数为对接的树莓派编号
         with lock1:
             if wriPos < 50 * (num + 1):     # 写入缓冲区（溢出的包丢弃）
                 matrix[wriPos] = vector
-                tlist[wriPos] = int(round(time.time() * 1000)) - DATE_DELTA      # 记录时间戳
+                tlist[wriPos] = int(round(time.time() * 1000)) % 1000000      # 记录时间戳
                 wriPos += 1
 
 '''预处理数据'''
@@ -92,21 +92,19 @@ def preprocess_data():
             print("new second: ", ns)
             ls = ns
             with lock1:
-                # print(matrix)
                 pmatrix = copy.deepcopy(matrix)
                 ptlist = copy.deepcopy(tlist)
                 reset1 = True
                 reset2 = True
                 reset3 = True
                 matrix = np.zeros((PCAP_SIZE, NFFT), dtype=np.complex)
-                tlist = np.zeros((PCAP_SIZE), dtype=np.long)
-                # print("Copied the matrix and tlist")
+                tlist = np.zeros(PCAP_SIZE, dtype=np.long)
             pmatrix = np.abs(pmatrix)               # 将复数矩阵求模运算
             # print(pmatrix)
-            print(tlist)
+            print(ptlist)
             fill_blanks(pmatrix, ptlist)            # 插值
             print("fill the blank")
-            print(tlist)
+            print(ptlist)
             for i in range(pmatrix.shape[0]):       # 幅值置零，归一化
                 for j in [0, 29, 30, 31, 32, 33, 34, 35]:
                     pmatrix[i][j] = 0     
@@ -167,15 +165,18 @@ def fill_blanks(pmatrix, ptlist):
         if ptlist[i] == 0 and blank_count[0] == -1:
             blank_count[0] = 50 - i
         if ptlist[i + 50] == 0 and blank_count[1] == -1:
-            blank_count[1] = 100 - i
+            blank_count[1] = 100 - (i + 50)
         # if ptlist[i + 100] == 0 and blank_count[2] == -1:
-        #     blank_count[2] = 150 - i
+        #     blank_count[2] = 150 - (i + 100)
     if blank_count[0] == -1:
         blank_count[0] = 0
     if blank_count[1] == -1:
         blank_count[1] = 0
-    # if blank_count[2] == -1:
-    #     blank_count[2] = 0
+    if blank_count[2] == -1:
+        blank_count[2] = 0
+    while(blank_count[0] != 0 or blank_count[1] != 0 or blank_count[2] != 0):
+        fill(blank_count, pmatrix, ptlist)
+        # print(blank_count)
 
     
 def fill(blank_count, pmatrix, ptlist):
@@ -194,28 +195,31 @@ def fill(blank_count, pmatrix, ptlist):
                 if interval >= max_interval[1]:
                     max_interval[1] = interval
                     max_interval_index[1] = i + 50
-        if blank_count[2] != 0:
-            if ptlist[i + 100] != 0:
-                interval = ptlist[i + 100] - ptlist[i + 100 - 1]
-                if interval >= max_interval[2]:
-                    max_interval[2] = interval
-                    max_interval_index[2] = i + 100
+        # if blank_count[2] != 0:
+        #     if ptlist[i + 100] != 0:
+        #         interval = ptlist[i + 100] - ptlist[i + 100 - 1]
+        #         if interval >= max_interval[2]:
+        #             max_interval[2] = interval
+        #             max_interval_index[2] = i + 100
 
+    # print(max_interval_index)
     if max_interval_index[0] != -1:
-        i = 49
-        while i !=max_interval_index[0]:
-            pmatrix[i] = pmatrix[i - 1]
-        pmatrix[i] = (pmatrix[i - 1] + pmatrix[i + 1])/2
-        blank_count[0] -= blank_count[0]
+        print(ptlist)
+        pmatrix = np.insert(arr=pmatrix, obj=max_interval_index[0],
+                  values=(pmatrix[max_interval_index[0]] + pmatrix[max_interval_index[0] - 1]) / 2, axis=0)
+        ptlist = np.insert(arr=ptlist, obj=0,
+                  values=(ptlist[max_interval_index[0]] + ptlist[max_interval_index[0] - 1]) / 2, axis=0)
+        print(ptlist)
+        blank_count[0] -= 1
     if max_interval_index[1] != -1:
-        i = 99
-        while i !=max_interval_index[1]:
-            pmatrix[i] = pmatrix[i - 1]
-        pmatrix[i] = (pmatrix[i - 1] + pmatrix[i + 1])/2
-        blank_count[1] -= blank_count[1]
-    if max_interval_index[2] != -1:
-        i = 149
-        while i !=max_interval_index[0]:
-            pmatrix[i] = pmatrix[i - 1]
-        pmatrix[i] = (pmatrix[i - 1] + pmatrix[i + 1])/2
-        blank_count[2] -= blank_count[2]
+        pmatrix = np.insert(arr=pmatrix, obj=max_interval_index[1],
+                  values=(pmatrix[max_interval_index[1]] + pmatrix[max_interval_index[1] - 1]) / 2, axis=0)
+        ptlist = np.insert(arr=ptlist, obj=max_interval_index[1],
+                  values=(ptlist[max_interval_index[1]] + ptlist[max_interval_index[1] - 1]) / 2, axis=0)
+        blank_count[1] -= 1
+    # if max_interval_index[2] != -1:
+    #     np.insert(pmatrix, max_interval_index[2],
+    #               (pmatrix[max_interval_index[2]] + pmatrix[max_interval_index[2] - 1]) / 2)
+    #     np.insert(ptlist, max_interval_index[2],
+    #               (ptlist[max_interval_index[2]] + ptlist[max_interval_index[2] - 1]) / 2)
+    #     blank_count[2] -= 1
