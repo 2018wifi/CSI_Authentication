@@ -2,7 +2,7 @@ from parameter import *
 
 from main import queue1, queue2, lock1, lock2
 from model import Net, device
-
+import numpy as np
 import torch
 
 
@@ -14,8 +14,9 @@ def process():
         if not queue1.empty():
             with lock1:
                 data = queue1.get()
-            data = torch.from_numpy(data.astype('double'))
-            data = data.to(device)
+            data = np.zeros((PCAP_SIZE, NFFT))
+            data = torch.from_numpy(data)
+            data = data.to(device).float()
             data = torch.reshape(data, (1, 1, PCAP_SIZE, NFFT))
             result = model(data)
             if DEBUG:

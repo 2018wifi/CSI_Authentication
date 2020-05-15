@@ -21,7 +21,9 @@ MODEL_PATH = 'model.pkl'
 
 
 # plot
-PST = [(1., 2.), (5., 3.), (6., 9.)]
+LENGTH = 10
+WIDTH = 10
+POS = [(1., 2.), (5., 3.), (6., 9.)]
 
 
 # model
