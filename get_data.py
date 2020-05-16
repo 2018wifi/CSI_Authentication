@@ -10,13 +10,11 @@ from main import queue1 as queue
 from main import lock1 as lock
 
 lock1 = threading.Lock()
-# lock2 = threading.Lock()                                 # 用于同步三个树莓派的lock（目前仅用于锁connected_flag变量）
-# connected_flag = 0                                       # 连接成功数
-reset1 = False                                           # receiver1是否从头开始写入缓冲区
+reset1 = False                                              # receiver1是否从头开始写入缓冲区
 reset2 = False
 reset3 = False
-matrix = np.zeros((PCAP_SIZE, NFFT), dtype=np.complex)   # 缓冲区
-tlist = np.zeros(PCAP_SIZE, dtype=np.long)             # 和缓冲区中每一行对应的时间戳表，精度是毫秒级
+matrix = np.zeros((PCAP_SIZE, NFFT), dtype=np.complex)      # 缓冲区
+tlist = np.zeros(PCAP_SIZE, dtype=np.long)                  # 和缓冲区中每一行对应的时间戳表，精度是毫秒级
 
 
 def get_data():
@@ -52,15 +50,12 @@ def receive_data(num):          # 参数为对接的树莓派编号
 
     while True:
         if num == 0 and reset1:  # 检查是否重置
-            # print(wriPos, port)
             wriPos = 50 * num
             reset1 = False
         elif num == 1 and reset2:
-            # print(wriPos, port)
             wriPos = 50 * num
             reset2 = False
         elif num == 2 and reset3:
-            # print(wriPos, port)
             wriPos = 50 * num
             reset3 = False
 
@@ -100,22 +95,15 @@ def preprocess_data():
                 matrix = np.zeros((PCAP_SIZE, NFFT), dtype=np.complex)
                 tlist = np.zeros(PCAP_SIZE, dtype=np.long)
             pmatrix = np.abs(pmatrix)               # 将复数矩阵求模运算
-            # print(pmatrix)
-            print(ptlist)
             fill_blanks(pmatrix, ptlist)            # 插值
-            print("fill the blank")
-            print(ptlist)
             for i in range(pmatrix.shape[0]):       # 幅值置零，归一化
                 for j in [0, 29, 30, 31, 32, 33, 34, 35]:
                     pmatrix[i][j] = 0     
                 csi_max = pmatrix[i].max()
                 for k in range(pmatrix.shape[1]):
                     pmatrix[i][k] = pmatrix[i][k] / csi_max
-            # print("set 0 to some column and normalization")
-            # print("result:\n", pmatrix)
             with lock:
                 queue.put(pmatrix)          # 将处理好的数据插入队列中
-                # print("put the data to queue")
         ls = int(time.time())
         ns = int(time.time())
 
@@ -176,7 +164,6 @@ def fill_blanks(pmatrix, ptlist):
         blank_count[2] = 0
     while(blank_count[0] != 0 or blank_count[1] != 0 or blank_count[2] != 0):
         fill(blank_count, pmatrix, ptlist)
-        # print(blank_count)
 
     
 def fill(blank_count, pmatrix, ptlist):
@@ -204,18 +191,22 @@ def fill(blank_count, pmatrix, ptlist):
 
     # print(max_interval_index)
     if max_interval_index[0] != -1:
-        print(ptlist)
-        pmatrix = np.insert(arr=pmatrix, obj=max_interval_index[0],
-                  values=(pmatrix[max_interval_index[0]] + pmatrix[max_interval_index[0] - 1]) / 2, axis=0)
-        ptlist = np.insert(arr=ptlist, obj=0,
-                  values=(ptlist[max_interval_index[0]] + ptlist[max_interval_index[0] - 1]) / 2, axis=0)
-        print(ptlist)
+        i = 49
+        while i != max_interval_index[0]:                       # 在max_interval_index处插入均值
+            pmatrix[i] = pmatrix[i - 1]
+            ptlist[i] = ptlist[i - 1]
+            i -= 1
+        pmatrix[i] = (pmatrix[i - 1] + pmatrix[i]) / 2
+        ptlist[i] = (ptlist[i - 1] + ptlist[i]) / 2
         blank_count[0] -= 1
     if max_interval_index[1] != -1:
-        pmatrix = np.insert(arr=pmatrix, obj=max_interval_index[1],
-                  values=(pmatrix[max_interval_index[1]] + pmatrix[max_interval_index[1] - 1]) / 2, axis=0)
-        ptlist = np.insert(arr=ptlist, obj=max_interval_index[1],
-                  values=(ptlist[max_interval_index[1]] + ptlist[max_interval_index[1] - 1]) / 2, axis=0)
+        i = 99
+        while i != max_interval_index[1]:  # 在max_interval_index处插入均值
+            pmatrix[i] = pmatrix[i - 1]
+            ptlist[i] = ptlist[i - 1]
+            i -= 1
+        pmatrix[i] = (pmatrix[i - 1] + pmatrix[i]) / 2
+        ptlist[i] = (ptlist[i - 1] + ptlist[i]) / 2
         blank_count[1] -= 1
     # if max_interval_index[2] != -1:
     #     np.insert(pmatrix, max_interval_index[2],
