@@ -18,15 +18,34 @@ tlist = np.zeros(PCAP_SIZE, dtype=np.long)                  # 和缓冲区中每
 
 
 def get_data():
-    receiver_A = threading.Thread(target=receive_data, args=(0,))
-    receiver_A.start()
-    receiver_B = threading.Thread(target=receive_data, args=(1,))
-    receiver_B.start()
+    load_offline_csi()
+    # receiver_A = threading.Thread(target=receive_data, args=(0,))
+    # receiver_A.start()
+    # receiver_B = threading.Thread(target=receive_data, args=(1,))
+    # receiver_B.start()
     # receiver_C = threading.Thread(target=receive_data, args=(2,))
     # receiver_C.start()
 
-    preprocesser = threading.Thread(target=preprocess_data)
-    preprocesser.start()
+    # preprocesser = threading.Thread(target=preprocess_data)
+    # preprocesser.start()
+
+'''将离线数据传入'''
+def load_offline_csi():
+    global lock
+    for m in range(1, 4):
+        print("Point: ", str(m))
+        for j in range(1, 21):
+            pmatrix = np.load("data_offline\T" + str(m) + "\T" + str(m) + "_" + str(j) + ".npy")
+            pmatrix = np.abs(pmatrix)
+            for i in range(pmatrix.shape[0]):  # 幅值置零，归一化
+                for j in [0, 29, 30, 31, 32, 33, 34, 35]:
+                    pmatrix[i][j] = 0
+                csi_max = pmatrix[i].max()
+                for k in range(pmatrix.shape[1]):
+                    pmatrix[i][k] = pmatrix[i][k] / csi_max
+            with lock:
+                queue.put(pmatrix)  # 将处理好的数据插入队列中
+
 
 '''接收CSI包'''
 
