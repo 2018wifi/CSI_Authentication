@@ -4,6 +4,7 @@ import struct
 import socket
 import threading
 import numpy as np
+from time import sleep
 from parameter import *
 
 from main import queue1 as queue
@@ -18,16 +19,16 @@ tlist = np.zeros(PCAP_SIZE, dtype=np.long)                  # 和缓冲区中每
 
 
 def get_data():
-    load_offline_csi()
-    # receiver_A = threading.Thread(target=receive_data, args=(0,))
-    # receiver_A.start()
-    # receiver_B = threading.Thread(target=receive_data, args=(1,))
-    # receiver_B.start()
+    # load_offline_csi()
+    receiver_A = threading.Thread(target=receive_data, args=(0,))
+    receiver_A.start()
+    receiver_B = threading.Thread(target=receive_data, args=(1,))
+    receiver_B.start()
     # receiver_C = threading.Thread(target=receive_data, args=(2,))
     # receiver_C.start()
 
-    # preprocesser = threading.Thread(target=preprocess_data)
-    # preprocesser.start()
+    preprocesser = threading.Thread(target=preprocess_data)
+    preprocesser.start()
 
 '''将离线数据传入'''
 def load_offline_csi():
@@ -45,7 +46,7 @@ def load_offline_csi():
                     pmatrix[i][k] = pmatrix[i][k] / csi_max
             with lock:
                 queue.put(pmatrix)  # 将处理好的数据插入队列中
-
+        sleep(10)
 
 '''接收CSI包'''
 

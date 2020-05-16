@@ -14,7 +14,6 @@ def process():
         if not queue1.empty():
             with lock1:
                 data = queue1.get()
-            data = np.zeros((PCAP_SIZE, NFFT))
             data = torch.from_numpy(data)
             data = data.to(device).float()
             data = torch.reshape(data, (1, 1, PCAP_SIZE, NFFT))
