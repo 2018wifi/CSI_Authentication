@@ -1,8 +1,19 @@
-# CSI_RealTimePlot
-为了方便后期调试，所有参数请放在parameter.py中。
+# CSI_Authentication
 
-三步流程为
+### 文件说明：
 
-*数据获取与预处理* **---1--->** *计算数据并得出结果* **---2--->** *根据结果画图*
+- parameter.py： 存放所有参数，方便后期调试。
+- main.py：核心代码，控制整个运行流程
+- get_fingerprint：请求和获取CSI信息，将CSI信息加工成指纹
+- detect：调用model对指纹进行识别
+- train文件夹：
+  - data文件夹：处理后的训练数据
+  - data_pcap文件夹：原始数据
+  - model文件夹：模型文件夹
+    - MAC-n：某MAC地址对应C(3, 3) + C(3, 2) + C(3, 1)种（树莓派正常与否）情况的模型
 
-main.py中全局变量queue1为过程1的通信队列, queue2为过程2的通信队列, Lock1与Lock2为对应的线程锁
+
+
+### 运行流程：
+
+略，等pcr作图
