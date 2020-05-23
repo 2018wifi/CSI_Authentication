@@ -5,7 +5,12 @@ NFFT = int(BW * 3.2)
 PCAP_SIZE = 100  # 每个pcap包含的CSI数组个数
 
 
-# get_data
+# get_fingerprint
+RATE = 50           # 发包速率，单位：包/秒
+SERVER_IP = '192.168.0.101'         # TODO:删掉并将ServerIp改为实时的
+NEW_DEVICE_PORT = 8000
+BYTE_NUM = 500      # 发送内容的字节长度(0...1472)
+
 RASP_NUM = 2                    # 树莓派数量
 RASP_IP1 = "192.168.0.104"
 RASP_IP2 = "192.168.0.105"
@@ -16,7 +21,7 @@ PORT3 = 9602
 DATE_DELTA = 1589469244167      # 时间戳会是相对这个时间的间隔，避免太长无法放入numpy数组
 
 
-# process
+# detect
 MODEL_PATH = 'model.pkl'
 
 

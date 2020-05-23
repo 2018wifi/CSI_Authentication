@@ -18,6 +18,28 @@ matrix = np.zeros((PCAP_SIZE, NFFT), dtype=np.complex)      # 缓冲区
 tlist = np.zeros(PCAP_SIZE, dtype=np.long)                  # 和缓冲区中每一行对应的时间戳表，精度是毫秒级
 
 
+def udp():
+    udp_socket = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+    # udp_socket.setsockopt(socket.SOL_SOCKET, socket.SO_BROADCAST, 1)
+
+    mes = ""                            # 构造一定字节的内容
+    for i in range(0, BYTE_NUM + 1):
+        mes += str(i)
+
+    ts = int(time.time() * 1000)
+    interval = 1000 / float(RATE)
+    print("Initial ts:", ts)
+    print("Interval: ", interval, "ms")
+
+    while True:
+        if int(time.time() * 1000) < ts + interval:
+            continue
+        else:
+            ts += interval
+
+        udp_socket.sendto(mes.encode(), (SERVER_IP, NEW_DEVICE_PORT))
+        print("Have sent a packet to ", SERVER_IP, "\tts: ", int(time.time() * 1000))
+
 def get_data():
     load_offline_csi()
     # receiver_A = threading.Thread(target=receive_data, args=(0,))
