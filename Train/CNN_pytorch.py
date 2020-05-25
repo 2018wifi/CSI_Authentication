@@ -52,11 +52,9 @@ if __name__ == '__main__':
             for p in range(1, p_num + 1):
                 path4 = path3 + 'T' + str(t) + '_' + str(p) + '.npy'
                 # raw data
-                temp_x = np.load(path4)
+                temp_x = np.abs(np.load(path4))
                 temp_y = t
                 # process x from complete number to real number
-                for k in range(NPY_SIZE):
-                    temp_x[k] = abs(temp_x[k])
                 temp_x = torch.from_numpy(temp_x.astype('float64'))[0:NPY_SIZE]
                 # clean and normalize data
                 for k in [0, 29, 30, 31, 32, 33, 34, 35]:
@@ -68,7 +66,7 @@ if __name__ == '__main__':
                 x[cnt] = temp_x
                 y[cnt] = temp_y
                 cnt += 1
-                print(c, cnt)
+                print("State: {0}\tCount: {1}".format(c, cnt))
 
         # Extract test batch
         x = torch.reshape(x, (total, 1, NPY_SIZE, NFFT))
