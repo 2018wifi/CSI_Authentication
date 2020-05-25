@@ -1,5 +1,12 @@
 # CSI_Authentication
 
+### Bug：
+
+- get_fingerprint无法正常发送接收指纹请求
+- 训练model不可用
+
+
+
 ### 文件说明：
 
 - parameter.py： 存放所有参数，方便后期调试。

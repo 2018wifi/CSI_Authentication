@@ -11,8 +11,6 @@ finish_flag1 = False                                    # 接收完CSI的树莓�
 finish_flag2 = False
 finish_flag3 = False
 
-send_flag = True                                        # UDP包发送控制标签
-
 
 def get_fingerprint():
     global matrix
@@ -24,6 +22,7 @@ def get_fingerprint():
 
     matrix = np.zeros((FP_SIZE, NFFT), dtype=np.complex)
     '''请求树莓派发送CSI'''
+    print("请求树莓派发送CSI...")
     if RASP_STATE1:
         request_data(0)
     if RASP_STATE2:
@@ -31,12 +30,8 @@ def get_fingerprint():
     if RASP_STATE3:
         request_data(2)
 
-    '''发送UDP包，强制目标设备发送稳定的CSI信息'''
-    send_flag = True
-    sender = threading.Thread(target=send_udp())
-    sender.start()
-
     '''接收树莓派发送的CSI'''
+    print("接收CSI信息")
     if RASP_STATE1:
         receiver_A = threading.Thread(target=receive_data, args=(0,))
         receiver_A.start()
@@ -47,37 +42,37 @@ def get_fingerprint():
         receiver_C = threading.Thread(target=receive_data, args=(2,))
         receiver_C.start()
 
-    time_beg = int(round(time.time() * 1000))
-    while (RASP_STATE1 and not finish_flag1) \
-            or (RASP_STATE2 and not finish_flag2) \
-            or (RASP_STATE3 and not finish_flag3):
-        time_end = int(round(time.time() * 1000))
-        if time_end - time_beg > TIMEOUT * 1000:                # 超时时，将超时的树莓派状态置为无效，同时将matrix缩小
-            rasp_count_outdated = int(RASP_STATE1) + int(RASP_STATE2) + int(RASP_STATE3)
-            if not finish_flag1:
-                RASP_STATE1 = False
-            if not finish_flag2:
-                RASP_STATE2 = False
-            if not finish_flag3:
-                RASP_STATE3 = False
-            rasp_count_new = int(RASP_STATE1) + int(RASP_STATE2) + int(RASP_STATE3)
-            FP_SIZE = int((FP_SIZE / rasp_count_outdated) * rasp_count_new)   # 更新指纹大小
-            new_matrix = np.zeros((FP_SIZE, NFFT), dtype=np.complex)
-            bias = 0
-            piece_count = FP_SIZE / rasp_count_new
-            if RASP_STATE1:
-                new_matrix[bias: bias + piece_count] = matrix[0: piece_count]
-                bias += FP_SIZE / rasp_count_new
-            if RASP_STATE2:
-                new_matrix[bias: bias + piece_count] = matrix[piece_count: piece_count * 2]
-                bias += FP_SIZE / rasp_count_new
-            if RASP_STATE3:
-                new_matrix[bias: bias + piece_count] = matrix[piece_count * 2: piece_count * 3]
-            matrix = new_matrix
-            break
-        time.sleep(0.1)
+    '''发送UDP包，强制目标设备发送稳定的CSI信息'''
+    print("发送UDP包使目标设备稳定发送CSI信息...")
+    send_flag = True
+    sender = threading.Thread(target=send_udp())
+    sender.start()
 
-    send_flag = False
+    if (RASP_STATE1 and not finish_flag1) \
+            or (RASP_STATE2 and not finish_flag2) \
+            or (RASP_STATE3 and not finish_flag3):              # 有树莓派未在规定时间内完成任务
+        print("发现树莓派损坏")
+        rasp_count_outdated = int(RASP_STATE1) + int(RASP_STATE2) + int(RASP_STATE3)        # 原来存活的树莓派
+        if not finish_flag1:
+            RASP_STATE1 = False
+        if not finish_flag2:
+            RASP_STATE2 = False
+        if not finish_flag3:
+            RASP_STATE3 = False
+        rasp_count_new = int(RASP_STATE1) + int(RASP_STATE2) + int(RASP_STATE3)             # 现在存活的树莓派
+        FP_SIZE = int((FP_SIZE / rasp_count_outdated) * rasp_count_new)                     # 更新指纹大小
+        new_matrix = np.zeros((FP_SIZE, NFFT), dtype=np.complex)
+        bias = 0                                                                            # 将矩阵缩小
+        piece_count = int(FP_SIZE / rasp_count_new)
+        if RASP_STATE1:
+            new_matrix[bias: bias + piece_count] = matrix[0: piece_count]
+            bias += FP_SIZE / rasp_count_new
+        if RASP_STATE2:
+            new_matrix[bias: bias + piece_count] = matrix[piece_count: piece_count * 2]
+            bias += FP_SIZE / rasp_count_new
+        if RASP_STATE3:
+            new_matrix[bias: bias + piece_count] = matrix[piece_count * 2: piece_count * 3]
+        matrix = new_matrix
 
     '''处理CSI成指纹'''
     preprocess_data()
@@ -101,6 +96,7 @@ def send_udp():
     interval = 1000 / float(RATE)
 
     print("UDP发送开始")
+    time_beg = int(time.time())
     while send_flag:
         if int(time.time() * 1000) < ts + interval:
             continue
@@ -109,6 +105,9 @@ def send_udp():
 
         udp_socket.sendto(mes.encode(), (TARGET_IP, NEW_DEVICE_PORT))
         # print("Have sent a packet to ", TARGET_IP, "\tts: ", int(time.time() * 1000))
+        time_end = int(time.time())
+        if time_end - time_beg > MAX_SEND_UDP_TIME:
+            break
     print("UDP发送结束")
 
 
@@ -118,6 +117,7 @@ def send_udp():
 
 
 def request_data(rasp_num):
+    print("请求树莓派" + str(rasp_num) + "发送CSI...")
     tcp_ip = None
     if rasp_num == 0:
         tcp_ip = RASP_IP1
@@ -129,15 +129,15 @@ def request_data(rasp_num):
     tcp_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
     tcp_socket.connect((tcp_ip, tcp_port))
 
-    mes = TARGET_MAC + " " + str(FP_SIZE / 3)         # 目标地址: 包数
-
+    mes = TARGET_MAC + " " + str(int(FP_SIZE / 3))         # 目标地址: 包数
     tcp_socket.send(mes.encode())
-    reply = tcp_socket.recv(4096)
+    reply = tcp_socket.recv(4096).decode()
     tcp_socket.close()
     if reply != "OK":
-        print("ERROR: 请求树莓派" + rasp_num + "发送CSI时返回错误!")
+        print("ERROR: 请求树莓派" + str(rasp_num) + "发送CSI时返回错误!")
         return False
     else:
+        print("请求树莓派" + str(rasp_num) + "结束, 开始接收CSI")
         return True
 
 
@@ -148,7 +148,9 @@ def request_data(rasp_num):
 
 def receive_data(rasp_num):  # 参数为树莓派编号
     global matrix
-    global finish_count
+    global finish_flag1
+    global finish_flag2
+    global finish_flag3
 
     port = None
     if rasp_num == 0:
@@ -161,20 +163,26 @@ def receive_data(rasp_num):  # 参数为树莓派编号
     udp_socket = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
     udp_socket.bind(("", port))
 
-    dst_count = FP_SIZE / 3  # 目标接收数量
+    dst_count = int(FP_SIZE / 3)      # 目标接收数量
 
+    print("准备从树莓派", rasp_num, "接收", dst_count, "个CSI向量...")
     for i in range(dst_count):
         buffer = udp_socket.recv(1024)
-        if len(buffer) != 274:  # 舍弃大小不正确的包
+        if len(buffer) != 274:        # 舍弃大小不正确的包
             continue
         data = parse(buffer)
         vector = read_csi(data)
 
         with matrix_lock:
-            matrix[i + (dst_count * num)] = vector
+            matrix[i + (dst_count * rasp_num)] = vector
 
-    with matrix_lock:
-        finish_count += 1
+    print("树莓派", rasp_num, "的CSI矩阵接收完毕")
+    if rasp_num == 0:
+        finish_flag1 = True
+    elif rasp_num == 1:
+        finish_flag2 = True
+    else:
+        finish_flag3 = True
 
 
 '''

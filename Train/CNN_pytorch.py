@@ -6,6 +6,7 @@ import torch.nn.functional as functional
 import numpy as np
 import random
 import os
+import sys
 import time
 import torch.optim.lr_scheduler as lr_scheduler
 from parameter import *
@@ -58,26 +59,26 @@ def get_file_num(path):
 if __name__ == '__main__':
     print(device)
 
-    path1 = 'data/MAC1'
+    path1 = './data/MAC1/'
     c_num = get_dir_num(path1)
     for c in range(1, c_num+1):
         total = 0
-        x = np.empty(shape=[0, PCAP_SIZE, NFFT])
+        x = np.empty(shape=[0, NPY_SIZE, NFFT])
         y = np.empty(shape=0)
-        path2 = path1 + 'Condition' + str(c)
+        path2 = path1 + 'State' + str(c) + '/'
         t_num = get_dir_num(path2)
         for t in range(1, t_num+1):
-            path3 = path2 + 'T' + str(t)
-            p_num = get_file_num(path3)
+            path3 = path2 + 'T' + str(t) + '/'
+            p_num = min(get_file_num(path3), 200)
             for p in range(1, p_num + 1):
-                path4 = path3 + '_' + str(p) + '.npy'
+                path4 = path3 + 'T' + str(t) + '_' + str(p) + '.npy'
                 # raw data
                 temp_x = np.load(path4)
                 temp_y = t
                 # process x from complete number to real number
-                for k in range(PCAP_SIZE):
+                for k in range(NPY_SIZE):
                     temp_x[k] = abs(temp_x[k])
-                temp_x = temp_x[0:PCAP_SIZE]
+                temp_x = temp_x[0:NPY_SIZE]
                 # clean and normalize data
                 for k in [0, 29, 30, 31, 32, 33, 34, 35]:
                     temp_x[:, k] = 0
@@ -92,8 +93,8 @@ if __name__ == '__main__':
         x = torch.from_numpy(x.astype('float64'))
         y = torch.from_numpy(y.astype('float64'))
         # Extract test batch
-        x = torch.reshape(x, (total, 1, PCAP_SIZE, NFFT))
-        test_x = torch.zeros((VAL_SIZE, PCAP_SIZE, NFFT), device=device)
+        x = torch.reshape(x, (total, 1, NPY_SIZE, NFFT))
+        test_x = torch.zeros((VAL_SIZE, NPY_SIZE, NFFT), device=device)
         test_y = torch.zeros((VAL_SIZE, OUTPUT_SIZE), device=device)
         for i in range(VAL_SIZE):
             n = random.randint(0, x.shape[0] - 1)
@@ -102,11 +103,11 @@ if __name__ == '__main__':
             test_y[i] = y[n]
             x = torch.cat((x[:n], x[n+1:]))
             y = torch.cat((y[:n], y[n+1:]))
-        test_x = torch.reshape(test_x, (VAL_SIZE, 1, PCAP_SIZE, NFFT))
+        test_x = torch.reshape(test_x, (VAL_SIZE, 1, NPY_SIZE, NFFT))
         x.requires_grad = True
         y.requires_grad = True
         # Construct our model by instantiating the class defined above
-        model = Net(PCAP_SIZE, NFFT, OUTPUT_SIZE).to(device)
+        model = Net(NPY_SIZE, NFFT, OUTPUT_SIZE).to(device)
 
         # Construct a loss function and an Optimizer. The call to model.parameters()
         # in the SGD constructor will contain the learnable parameters of the two

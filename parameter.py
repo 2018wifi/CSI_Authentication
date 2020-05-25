@@ -6,13 +6,12 @@ FP_SIZE = 150  # 指纹长度
 
 
 # get_fingerprint
-RATE = 50           # 发包速率，单位：包/秒
-SERVER_IP = '192.168.0.101'         # TODO:删掉并将ServerIp改为实时的
+RATE = 50                       # 发包速率，单位：包/秒
 NEW_DEVICE_PORT = 8000
-BYTE_NUM = 500      # 发送内容的字节长度(0...1472)
+BYTE_NUM = 500                  # 发送内容的字节长度(0...1472)
 
-TARGET_IP = None                # 目标设备IP
-TARGET_MAC = None               # 目标设备MAC
+TARGET_IP = "192.168.0.101"             # 目标设备IP
+TARGET_MAC = "DC:08:0F:26:6E:1D"        # 目标设备MAC
 
 RASP_COUNT = 3                  # 树莓派数量
 RASP_STATE1 = True              # 树莓派状态
@@ -27,7 +26,19 @@ SERVER_PORT1 = 9600             # 主机接收CSI的端口
 SERVER_PORT2 = 9601
 SERVER_PORT3 = 9602
 
-TIMEOUT = 60                    # 树莓派发送超时时间
+MAX_SEND_UDP_TIME = 10                    # 发送UDP的持续时间（相当于超时时间）
+
+
+# CNN_pytorch
+NPY_SIZE = 150                 # 每个npy包含的CSI数组个数
+VAL_SIZE = 150
+
+LOAD_EXISTING_DATA = False
+SAVE_DATA = True
+HIDDEN_WIDTH = 50
+epochs = 5000
+learning_rate = 1e-2
+dynamically_adjust = False
 
 
 # model
