@@ -10,7 +10,7 @@ import sys
 import time
 import torch.optim.lr_scheduler as lr_scheduler
 from parameter import *
-from model import Net
+from model import Net, device
 
 
 def get_dir_num(path):

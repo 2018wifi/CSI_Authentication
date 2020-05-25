@@ -1,7 +1,7 @@
 from get_fingerprint import get_fingerprint
 from parameter import *
-import matplotlib.pyplot as plt
-import matplotlib.image as mpimg
+# import matplotlib.pyplot as plt
+# import matplotlib.image as mpimg
 from detect import detect
 import numpy as np
 
