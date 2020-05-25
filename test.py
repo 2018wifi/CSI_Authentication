@@ -5,11 +5,13 @@ import matplotlib.image as mpimg
 from detect import detect
 import numpy as np
 
+right_count = 0
 for t in range(1, 10):
     for i in range(201, 251):
-        path = "./local/T{0}_{1}.npy".format(t, i)
+        path = "./local/T{0}/T{0}_{1}.npy".format(t, i)
         matrix = np.abs(np.load(path))
         print(detect(matrix))
+
 
 
 # print("提示：有新主机连接入局域网中\tIP: ", TARGET_IP, "\tMAC: ", TARGET_MAC)

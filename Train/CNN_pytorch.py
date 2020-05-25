@@ -10,43 +10,7 @@ import sys
 import time
 import torch.optim.lr_scheduler as lr_scheduler
 from parameter import *
-
-# N is batch size; INPUT_SIZE is input dimension;
-# HIDDEN_WIDTH is the width of hidden dimension; OUTPUT_SIZE is output dimension;
-# VAL_SIZE is validation size.
-
-
-# if torch.cuda.is_available():
-#     device = torch.device('cuda')
-# else:
-device = torch.device('cpu')
-
-
-class Net(torch.nn.Module):
-    def __init__(self, HEIGH, WIDTH, OUTPUT_SIZE):
-        super(Net, self).__init__()
-        self.HEIGH = HEIGH
-        self.WIDTH = WIDTH
-        self.conv1 = nn.Conv2d(1, 6, 5)
-        self.pool = nn.MaxPool2d(2, 2)
-        self.conv2 = nn.Conv2d(6, 16, 5)
-        self.fc1 = nn.Linear(16 * ((((HEIGH-4)//2)-4)//2) * ((((WIDTH-4)//2)-4)//2), 120)
-        self.fc2 = nn.Linear(120, 84)
-        self.fc3 = nn.Linear(84, OUTPUT_SIZE)
-        self.dropout = torch.nn.Dropout(p=0.2)
-        # self.linear1 = torch.nn.Linear(INPUT_SIZE, HIDDEN_WIDTH)
-        # self.linear2 = torch.nn.Linear(HIDDEN_WIDTH, HIDDEN_WIDTH)
-        # self.linear3 = torch.nn.Linear(HIDDEN_WIDTH, OUTPUT_SIZE)
-
-
-    def forward(self, x):
-        x = self.pool(functional.relu(self.conv1(x)))
-        x = self.pool(functional.relu(self.conv2(x)))
-        x = x.view(-1, 16 * ((((self.HEIGH-4)//2)-4)//2) * ((((self.WIDTH-4)//2)-4)//2))
-        x = self.dropout(functional.relu(self.fc1(x)))
-        x = self.dropout(functional.relu(self.fc2(x)))
-        x = self.fc3(x)
-        return x
+from model import Net
 
 
 def get_dir_num(path):
