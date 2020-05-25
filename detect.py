@@ -32,6 +32,7 @@ def detect(matrix):
     model.load_state_dict(torch.load(model_path))
     print('模型加载成功', model)
 
+
     data = torch.from_numpy(np.abs(matrix))
     data = data.to(device).float()
     data = torch.reshape(data, (1, 1, FP_SIZE, NFFT))
@@ -41,7 +42,7 @@ def detect(matrix):
     print("检测时间: ", time_end - time_beg)
     print("检测结果: ", result)
 
-    return result
+    return judge(result)
 
 
 '''
@@ -50,4 +51,4 @@ def detect(matrix):
 
 
 def judge(raw_result):          # TODO
-    pass
+    return torch.var(raw_result)

@@ -10,7 +10,7 @@ import sys
 import time
 import torch.optim.lr_scheduler as lr_scheduler
 from parameter import *
-from model import Net
+from model import Net, device
 
 
 def get_dir_num(path):
@@ -25,7 +25,7 @@ if __name__ == '__main__':
 
     path1 = './data/MAC1/'
     c_num = get_dir_num(path1)
-    for c in range(1, c_num+1):
+    for c in range(7, c_num+1):
         total = 0
         path2 = path1 + 'State' + str(c) + '/'
         t_num = get_dir_num(path2)

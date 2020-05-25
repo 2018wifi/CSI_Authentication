@@ -193,6 +193,8 @@ def receive_data(rasp_num):  # 参数为树莓派编号
 def preprocess_data():
     global matrix
 
+    matrix = np.abs(matrix)
+
     for i in range(matrix.shape[0]):
         for j in [0, 29, 30, 31, 32, 33, 34, 35]:  # 部分子载波幅值置零
             matrix[i][j] = 0
