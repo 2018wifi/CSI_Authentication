@@ -25,7 +25,7 @@ if __name__ == '__main__':
 
     path1 = './data/MAC1/'
     c_num = get_dir_num(path1)
-    for c in range(1, c_num+1):
+    for c in range(7, c_num+1):
         total = 0
         path2 = path1 + 'State' + str(c) + '/'
         t_num = get_dir_num(path2)
@@ -53,7 +53,7 @@ if __name__ == '__main__':
                 path4 = path3 + 'T' + str(t) + '_' + str(p) + '.npy'
                 # raw data
                 temp_x = np.load(path4)
-                temp_y = t
+                temp_y = t - 1
                 # process x from complete number to real number
                 for k in range(NPY_SIZE):
                     temp_x[k] = abs(temp_x[k])
@@ -66,9 +66,10 @@ if __name__ == '__main__':
                     for p in range(temp_x.shape[1]):
                         temp_x[k][p] = temp_x[k][p] / CSI_max
                 x[cnt] = temp_x
-                y[cnt] = temp_y
+                y[cnt][temp_y] = 1
+                print(c, temp_y, y[cnt])
                 cnt += 1
-                print(c, cnt)
+
 
         # Extract test batch
         x = torch.reshape(x, (total, 1, NPY_SIZE, NFFT))

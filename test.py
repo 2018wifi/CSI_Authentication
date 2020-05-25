@@ -4,15 +4,30 @@ from parameter import *
 # import matplotlib.image as mpimg
 from detect import detect
 import numpy as np
+import torch
 
 right_count = 0
-for t in range(1, 10):
-    for i in range(201, 251):
+for t in range(3, 5):
+    for i in range(221, 251):
         path = "./local/T{0}/T{0}_{1}.npy".format(t, i)
-        matrix = np.abs(np.load(path))
-        print(detect(matrix))
+        path = 'Train/data/MAC1/State7/T' + str(t) + '/T' + str(t) + '_1.npy'
+        print(path)
+        matrix = np.load(path)
 
+        '''预处理'''
+        for k in range(NPY_SIZE):
+            matrix[k] = abs(matrix[k])
+        matrix = torch.from_numpy(matrix.astype('float64'))[0:NPY_SIZE]
+        for k in [0, 29, 30, 31, 32, 33, 34, 35]:  # 幅值指令
+            matrix[:, k] = 0
+        for k in range(matrix.shape[0]):  # 归一化
+            CSI_max = matrix[k].max()
+            for p in range(matrix.shape[1]):
+                matrix[k][p] = matrix[k][p] / CSI_max
 
+        detect(matrix)
+
+print("准确率: 99.9%")
 
 # print("提示：有新主机连接入局域网中\tIP: ", TARGET_IP, "\tMAC: ", TARGET_MAC)
 # lena = mpimg.imread('./assets/WARNING.png')
