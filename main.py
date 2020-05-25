@@ -23,6 +23,7 @@ if __name__ == '__main__':
         isInvade = detect(matrix)
 
         if isInvade:
+            print("WARNING: IP: {0}\tMAC: {1}认证失败！".format(TARGET_IP, TARGET_MAC))
             lena = mpimg.imread('./assets/WARNING.png')
 
             plt.imshow(lena)    # 显示图片
