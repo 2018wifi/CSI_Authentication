@@ -30,17 +30,17 @@ def detect(matrix):
 
     model = Net(FP_SIZE, NFFT, OUTPUT_SIZE).to(device)
     model.load_state_dict(torch.load(model_path))
-    print('模型加载成功', model)
+    # print('模型加载成功', model)
 
-    data = torch.from_numpy(matrix)
-    data = data.to(device).float()
+
+    data = matrix.to(device).float()
     data = torch.reshape(data, (1, 1, FP_SIZE, NFFT))
-    time_beg = int(round(time.time() * 1000000))
+    time_beg = int(round(time.time() * 1000))
     result = model(data)
-    time_end = int(round(time.time() * 1000000))
-    print("检测时间: ", time_end - time_beg)
-    print("检测结果: ", result)
-
+    time_end = int(round(time.time() * 1000))
+    # print("检测时间: ", time_end - time_beg)
+    # print("检测结果: ", result)
+    print(result.argmax())
     return judge(result)
 
 
@@ -49,5 +49,5 @@ def detect(matrix):
 '''
 
 
-def judge(raw_result):  # TODO
+def judge(raw_result):          # TODO
     return torch.var(raw_result)

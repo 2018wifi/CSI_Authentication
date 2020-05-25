@@ -52,9 +52,11 @@ if __name__ == '__main__':
             for p in range(1, p_num + 1):
                 path4 = path3 + 'T' + str(t) + '_' + str(p) + '.npy'
                 # raw data
-                temp_x = np.abs(np.load(path4))
-                temp_y = t
+                temp_x = np.load(path4)
+                temp_y = t - 1
                 # process x from complete number to real number
+                for k in range(NPY_SIZE):
+                    temp_x[k] = abs(temp_x[k])
                 temp_x = torch.from_numpy(temp_x.astype('float64'))[0:NPY_SIZE]
                 # clean and normalize data
                 for k in [0, 29, 30, 31, 32, 33, 34, 35]:
@@ -64,9 +66,10 @@ if __name__ == '__main__':
                     for p in range(temp_x.shape[1]):
                         temp_x[k][p] = temp_x[k][p] / CSI_max
                 x[cnt] = temp_x
-                y[cnt] = temp_y
+                y[cnt][temp_y] = 1
+                print(c, temp_y, y[cnt])
                 cnt += 1
-                print("State: {0}\tCount: {1}".format(c, cnt))
+
 
         # Extract test batch
         x = torch.reshape(x, (total, 1, NPY_SIZE, NFFT))
@@ -126,4 +129,3 @@ if __name__ == '__main__':
                     test_y_pred = model(test_x.float())
                     test_loss = criterion(test_y_pred, torch.max(test_y, 1)[1])
                 scheduler.step(test_loss)
-
