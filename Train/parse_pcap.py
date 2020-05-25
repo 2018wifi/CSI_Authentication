@@ -49,7 +49,7 @@ class Pcap:
         return csi
 
     def parse(self):                                            # 提取CSI信息和时间戳信息，并转换成矩阵
-        f = open("data_pcap/data" + str(self.rasp_num) + "/" + "T" + str(self.point_num) + "/" + self.pcap_name + ".pcap", 'rb')
+        f = open("data_pcap/MAC1/pi" + str(self.rasp_num) + "/" + "T" + str(self.point_num) + "/" + self.pcap_name + ".pcap", 'rb')
         pcap = dpkt.pcap.Reader(f)
 
         csi_matrix_list = []
@@ -141,26 +141,27 @@ class Pcap:
 
 
 if __name__ == '__main__':
-    for i in range(1, 4):           # 三个点
-        for j in range(1, 101):      # 包
+    for i in range(1, 10):           # 点
+        for j in range(1, 251):      # 包
             pcap_name = "T" + str(i) + "_" + str(j)
+            print("Parsing ", pcap_name)
             pcap1 = Pcap(1, i, pcap_name)
             pcap2 = Pcap(2, i, pcap_name)
-            # pcap3 = Pcap(3, j, pcap_name)
+            pcap3 = Pcap(3, i, pcap_name)
             pcap1.parse()
             pcap2.parse()
-            # pcap3.parse()
+            pcap3.parse()
 
-            con_matrix = np.zeros((100, 64), dtype=np.complex)
+            con_matrix = np.zeros((150, 64), dtype=np.complex)
             con_matrix[0:50] = pcap1.csi_matrix[0:50]
             con_matrix[50:100] = pcap2.csi_matrix[0:50]
-            # con_matrix[100:150] = pcap3.csi_matrix
-            with open("data/T" + str(i) + "/T" + str(i) + "_" + str(j) + ".npy",
+            con_matrix[100:150] = pcap3.csi_matrix[0:50]
+            with open("data/MAC1/State1/T" + str(i) + "/T" + str(i) + "_" + str(j) + ".npy",
                       'wb'):
                 pass
-            np.save("data/T" + str(i) + "/T" + str(i) + "_" + str(j) + ".npy", con_matrix)
+            np.save("data/MAC1/State1/T" + str(i) + "/T" + str(i) + "_" + str(j) + ".npy", con_matrix)
 
-            pcap1.save()
-            pcap2.save()
+            # pcap1.save()
+            # pcap2.save()
             # pcap3.save()
 

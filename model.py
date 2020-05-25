@@ -53,7 +53,7 @@ if __name__ == '__main__':
         x = torch.load('data_x.pt').to(device)
         y = torch.load('data_y.pt').to(device)
     else:
-        x = torch.zeros((T_NUM * T_SIZE, PCAP_SIZE, NFFT), device=device)
+        x = torch.zeros((T_NUM * T_SIZE, FP_SIZE, NFFT), device=device)
         y = torch.zeros((T_NUM * T_SIZE, OUTPUT_SIZE), device=device)
         cnt = 0
         for i in range(T_NUM):
@@ -63,9 +63,9 @@ if __name__ == '__main__':
                 # read .npy file
                 file = 'data/T' + str(i+1) + '/T' + str(i+1) + '_' + str(j+1) + '.npy'
                 temp_x = np.load(file)
-                for k in range(PCAP_SIZE):
+                for k in range(FP_SIZE):
                     temp_x[k] = abs(temp_x[k])
-                temp_x = torch.from_numpy(temp_x.astype('float64'))[0:PCAP_SIZE]
+                temp_x = torch.from_numpy(temp_x.astype('float64'))[0:FP_SIZE]
                 # clean and normalize data
                 for k in [0, 29, 30, 31, 32, 33, 34, 35]:
                     temp_x[:, k] = 0
@@ -82,8 +82,8 @@ if __name__ == '__main__':
         torch.save(x, 'data_x.pt')
         torch.save(y, 'data_y.pt')
     # Extract test batch
-    x = torch.reshape(x, (T_SIZE*T_NUM, 1, PCAP_SIZE, NFFT))
-    test_x = torch.zeros((VAL_SIZE, PCAP_SIZE, NFFT), device=device)
+    x = torch.reshape(x, (T_SIZE*T_NUM, 1, FP_SIZE, NFFT))
+    test_x = torch.zeros((VAL_SIZE, FP_SIZE, NFFT), device=device)
     test_y = torch.zeros((VAL_SIZE, OUTPUT_SIZE), device=device)
     for i in range(VAL_SIZE):
         n = random.randint(0, x.shape[0] - 1)
@@ -92,11 +92,11 @@ if __name__ == '__main__':
         test_y[i] = y[n]
         x = torch.cat((x[:n], x[n+1:]))
         y = torch.cat((y[:n], y[n+1:]))
-    test_x = torch.reshape(test_x, (VAL_SIZE, 1, PCAP_SIZE, NFFT))
+    test_x = torch.reshape(test_x, (VAL_SIZE, 1, FP_SIZE, NFFT))
     x.requires_grad = True
     y.requires_grad = True
     # Construct our model by instantiating the class defined above
-    model = Net(PCAP_SIZE, NFFT, OUTPUT_SIZE).to(device)
+    model = Net(FP_SIZE, NFFT, OUTPUT_SIZE).to(device)
 
     # Construct a loss function and an Optimizer. The call to model.parameters()
     # in the SGD constructor will contain the learnable parameters of the two
