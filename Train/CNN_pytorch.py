@@ -71,6 +71,12 @@ if __name__ == '__main__':
             for p in range(1, p_num + 1):
                 total += 1
                 print(total)
+        if c in [1, 2, 4]:
+            NPY_SIZE = 50
+        elif c in [3, 5, 6]:
+            NPY_SIZE = 100
+        else:
+            NPY_SIZE = 150
         x = torch.zeros((total, NPY_SIZE, NFFT), device=device)
         y = torch.zeros((total, OUTPUT_SIZE), device=device)
         cnt = 0
@@ -98,7 +104,7 @@ if __name__ == '__main__':
                 x[cnt] = temp_x
                 y[cnt] = temp_y
                 cnt += 1
-                print(cnt)
+                print(c, cnt)
 
         # Extract test batch
         x = torch.reshape(x, (total, 1, NPY_SIZE, NFFT))
@@ -136,7 +142,7 @@ if __name__ == '__main__':
                 _, predicted = torch.max(y_pred.data, 1)
                 _, expected = torch.max(y.data, 1)
                 correct = (predicted == expected).sum().item()
-                print('针对训练集的准确率', (correct / (T_NUM*T_SIZE-VAL_SIZE)) * 100, '%')
+                print('针对训练集的准确率', (correct / (total-VAL_SIZE)) * 100, '%')
                 with torch.no_grad():
                     test_y_pred = model(test_x.float())
                     test_loss = criterion(test_y_pred, torch.max(test_y, 1)[1])
@@ -146,9 +152,9 @@ if __name__ == '__main__':
                     correct = (predicted == expected).sum().item()
                     print('针对测试集的准确率', (correct/VAL_SIZE)*100, '%')
                     if correct/VAL_SIZE > 0.95:
-                        torch.save(model.state_dict(), 'models/model' + str(c_num) + '.pkl')
+                        torch.save(model.state_dict(), 'models/model' + str(c) + '.pkl')
                         print('准确率达到阈值， 模型已保存')
-                        exit()
+                        break
 
             # Zero gradients, perform a backward pass, and update the weights.
             loss.backward()
