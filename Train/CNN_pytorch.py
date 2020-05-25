@@ -89,8 +89,8 @@ if __name__ == '__main__':
                 y = np.append(y, temp_y)
                 total += 1
 
-        x = torch.from_numpy(x.astype('float64'))
-        y = torch.from_numpy(y.astype('float64'))
+        x = torch.from_numpy(x.astype(np.float64))
+        y = torch.from_numpy(y.astype(np.float64))
         # Extract test batch
         x = torch.reshape(x, (total, 1, PCAP_SIZE, NFFT))
         test_x = torch.zeros((VAL_SIZE, PCAP_SIZE, NFFT), device=device)
