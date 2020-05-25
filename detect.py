@@ -7,7 +7,7 @@ import time
 
 
 def detect(matrix):
-    model_path = "./models/"
+    model_path = "./Train/model/"
     model_size0 = FP_SIZE * (int(RASP_STATE1) + int(RASP_STATE2) + int(RASP_STATE3))    # 模型输入矩阵的长度，根据树莓派的状态而变化
     if RASP_STATE1 and RASP_STATE2 and RASP_STATE3:
         model_path += TARGET_MAC + "7"
