@@ -16,10 +16,10 @@ from parameter import *
 # VAL_SIZE is validation size.
 
 
-if torch.cuda.is_available():
-    device = torch.device('cuda')
-else:
-    device = torch.device('cpu')
+# if torch.cuda.is_available():
+#     device = torch.device('cuda')
+# else:
+device = torch.device('cpu')
 
 
 class Net(torch.nn.Module):
@@ -63,8 +63,17 @@ if __name__ == '__main__':
     c_num = get_dir_num(path1)
     for c in range(1, c_num+1):
         total = 0
-        x = np.empty(shape=[0, NPY_SIZE, NFFT])
-        y = np.empty(shape=0)
+        path2 = path1 + 'State' + str(c) + '/'
+        t_num = get_dir_num(path2)
+        for t in range(1, t_num + 1):
+            path3 = path2 + 'T' + str(t) + '/'
+            p_num = min(get_file_num(path3), 200)
+            for p in range(1, p_num + 1):
+                total += 1
+                print(total)
+        x = torch.zeros((total, NPY_SIZE, NFFT), device=device)
+        y = torch.zeros((total, OUTPUT_SIZE), device=device)
+        cnt = 0
         path2 = path1 + 'State' + str(c) + '/'
         t_num = get_dir_num(path2)
         for t in range(1, t_num+1):
@@ -78,7 +87,7 @@ if __name__ == '__main__':
                 # process x from complete number to real number
                 for k in range(NPY_SIZE):
                     temp_x[k] = abs(temp_x[k])
-                temp_x = temp_x[0:NPY_SIZE]
+                temp_x = torch.from_numpy(temp_x.astype('float64'))[0:NPY_SIZE]
                 # clean and normalize data
                 for k in [0, 29, 30, 31, 32, 33, 34, 35]:
                     temp_x[:, k] = 0
@@ -86,12 +95,11 @@ if __name__ == '__main__':
                     CSI_max = temp_x[k].max()
                     for p in range(temp_x.shape[1]):
                         temp_x[k][p] = temp_x[k][p] / CSI_max
-                x = np.append(x, [temp_x])
-                y = np.append(y, temp_y)
-                total += 1
+                x[cnt] = temp_x
+                y[cnt] = temp_y
+                cnt += 1
+                print(cnt)
 
-        x = torch.from_numpy(x.astype(np.float64))
-        y = torch.from_numpy(y.astype(np.float64))
         # Extract test batch
         x = torch.reshape(x, (total, 1, NPY_SIZE, NFFT))
         test_x = torch.zeros((VAL_SIZE, NPY_SIZE, NFFT), device=device)
