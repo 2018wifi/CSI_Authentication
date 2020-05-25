@@ -146,7 +146,7 @@ if __name__ == '__main__':
                     correct = (predicted == expected).sum().item()
                     print('针对测试集的准确率', (correct/VAL_SIZE)*100, '%')
                     if correct/VAL_SIZE > 0.95:
-                        torch.save(model.state_dict(), 'model.pkl')
+                        torch.save(model.state_dict(), 'models/model' + str(c_num) + '.pkl')
                         print('准确率达到阈值， 模型已保存')
                         exit()
 
