@@ -67,20 +67,20 @@ if __name__ == '__main__':
                         temp_x[k][p] = temp_x[k][p] / CSI_max
                 x[cnt] = temp_x
                 y[cnt][temp_y] = 1
-                # print(c, temp_y, y[cnt])
+                print(c, temp_y, y[cnt])
                 cnt += 1
 
 
         # Extract test batch
         x = torch.reshape(x, (total, 1, NPY_SIZE, NFFT))
-        test_x = torch.zeros((VAL_SIZE, NPY_SIZE, NFFT), device=device)
-        test_y = torch.zeros((VAL_SIZE, OUTPUT_SIZE), device=device)
-        for i in range(VAL_SIZE):
-            n = random.randint(0, x.shape[0] - 1)
-            # print(n)
-            test_x[i] = x[n]
-            test_y[i] = y[n]
-        test_x = torch.reshape(test_x, (VAL_SIZE, 1, NPY_SIZE, NFFT))
+        # test_x = torch.zeros((VAL_SIZE, NPY_SIZE, NFFT), device=device)
+        # test_y = torch.zeros((VAL_SIZE, OUTPUT_SIZE), device=device)
+        # for i in range(VAL_SIZE):
+        #     n = random.randint(0, x.shape[0] - 1)
+        #     # print(n)
+        #     test_x[i] = x[n]
+        #     test_y[i] = y[n]
+        # test_x = torch.reshape(test_x, (VAL_SIZE, 1, NPY_SIZE, NFFT))
         x.requires_grad = True
         y.requires_grad = True
         # Construct our model by instantiating the class defined above
@@ -107,14 +107,14 @@ if __name__ == '__main__':
                 correct = (predicted == expected).sum().item()
                 print('针对训练集的准确率', (correct / (total-VAL_SIZE)) * 100, '%')
                 with torch.no_grad():
-                    test_y_pred = model(test_x.float())
-                    test_loss = criterion(test_y_pred, torch.max(test_y, 1)[1])
-                    print('针对测试集的损失', test_loss.item())
-                    _, predicted = torch.max(test_y_pred.data, 1)
-                    _, expected = torch.max(test_y.data, 1)
-                    correct = (predicted == expected).sum().item()
-                    print('针对测试集的准确率', (correct/VAL_SIZE)*100, '%')
-                    if correct/VAL_SIZE > 0.95:
+                    # test_y_pred = model(test_x.float())
+                    # test_loss = criterion(test_y_pred, torch.max(test_y, 1)[1])
+                    # print('针对测试集的损失', test_loss.item())
+                    # _, predicted = torch.max(test_y_pred.data, 1)
+                    # _, expected = torch.max(test_y.data, 1)
+                    # correct = (predicted == expected).sum().item()
+                    # print('针对测试集的准确率', (correct/VAL_SIZE)*100, '%')
+                    if correct/total > 0.95:
                         torch.save(model.state_dict(), 'models/model' + str(c) + '.pkl')
                         print('准确率达到阈值， 模型已保存')
                         break
@@ -122,8 +122,8 @@ if __name__ == '__main__':
             # Zero gradients, perform a backward pass, and update the weights.
             loss.backward()
             optimizer.step()
-            if dynamically_adjust:
-                with torch.no_grad():
-                    test_y_pred = model(test_x.float())
-                    test_loss = criterion(test_y_pred, torch.max(test_y, 1)[1])
-                scheduler.step(test_loss)
+            # if dynamically_adjust:
+            #     with torch.no_grad():
+            #         test_y_pred = model(test_x.float())
+            #         test_loss = criterion(test_y_pred, torch.max(test_y, 1)[1])
+            #     scheduler.step(test_loss)
