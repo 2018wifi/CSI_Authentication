@@ -80,8 +80,6 @@ if __name__ == '__main__':
             # print(n)
             test_x[i] = x[n]
             test_y[i] = y[n]
-            x = torch.cat((x[:n], x[n+1:]))
-            y = torch.cat((y[:n], y[n+1:]))
         test_x = torch.reshape(test_x, (VAL_SIZE, 1, NPY_SIZE, NFFT))
         x.requires_grad = True
         y.requires_grad = True
