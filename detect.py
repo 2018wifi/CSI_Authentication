@@ -35,19 +35,8 @@ def detect(matrix):
 
     data = matrix.to(device).float()
     data = torch.reshape(data, (1, 1, FP_SIZE, NFFT))
-    time_beg = int(round(time.time() * 1000))
+    time_beg = int(round(time.time() * 1000000))
     result = model(data)
-    time_end = int(round(time.time() * 1000))
-    # print("检测时间: ", time_end - time_beg)
-    # print("检测结果: ", result)
-    print(result.argmax())
-    return judge(result)
-
-
-'''
-将模型输出的结果转化为布尔变量
-'''
-
-
-def judge(raw_result):          # TODO
-    return torch.var(raw_result)
+    time_end = int(round(time.time() * 1000000))
+    print(result)
+    return result.argmax(), float(torch.var(result)), time_end - time_beg         # 最可能的点，各点的结果方差，检测时间

@@ -26,8 +26,8 @@ if __name__ == '__main__':
             print("WARNING: IP: {0}\tMAC: {1}认证失败！".format(TARGET_IP, TARGET_MAC))
             lena = mpimg.imread('./assets/WARNING.png')
 
-            plt.imshow(lena)    # 显示图片
-            plt.axis('off')     # 不显示坐标轴
+            plt.imshow(lena)
+            plt.axis("off")
             plt.show()
 
             # 在此也可以给远程主机发送警告

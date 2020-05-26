@@ -152,14 +152,14 @@ if __name__ == '__main__':
             pcap2.parse()
             pcap3.parse()
 
-            con_matrix = np.zeros((150, 64), dtype=np.complex)
+            con_matrix = np.zeros((100, 64), dtype=np.complex)
             con_matrix[0:50] = pcap1.csi_matrix[0:50]
             con_matrix[50:100] = pcap2.csi_matrix[0:50]
             con_matrix[100:150] = pcap3.csi_matrix[0:50]
-            with open("data/MAC1/State1/T" + str(i) + "/T" + str(i) + "_" + str(j) + ".npy",
+            with open("data/MAC1/State7/T" + str(i) + "/T" + str(i) + "_" + str(j) + ".npy",
                       'wb'):
                 pass
-            np.save("data/MAC1/State1/T" + str(i) + "/T" + str(i) + "_" + str(j) + ".npy", con_matrix)
+            np.save("data/MAC1/State7/T" + str(i) + "/T" + str(i) + "_" + str(j) + ".npy", con_matrix)
 
             # pcap1.save()
             # pcap2.save()

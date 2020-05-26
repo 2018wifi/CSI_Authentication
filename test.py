@@ -7,11 +7,12 @@ import numpy as np
 import torch
 
 right_count = 0
+error_count = 0
+test_time = []              # us
 for t in range(1, 9):
     for i in range(201, 251):
         path = "./local/T{0}/T{0}_{1}.npy".format(t, i)
         path = 'Train/data/MAC1/State7/T' + str(t) + '/T' + str(t) + '_1.npy'
-        print(path)
         matrix = np.load(path)
 
         '''预处理'''
@@ -25,21 +26,15 @@ for t in range(1, 9):
             for p in range(matrix.shape[1]):
                 matrix[k][p] = matrix[k][p] / CSI_max
 
-        detect(matrix)
+        point, variance, time_cost = detect(matrix)
+        print("T{0}_{1}检测结果: 最大可能地点: {2}\t方差: {3}\t花费时间: {4} us".format(t, i, point, round(variance, 3), time_cost))
+        test_time.append(time_cost)
+        if point == t - 1:
+            right_count += 1
+        else:
+            error_count += 1
 
-print("准确率: 99.9%")
-
-'''警告窗口'''
-# print("提示：有新主机连接入局域网中\tIP: ", TARGET_IP, "\tMAC: ", TARGET_MAC)
-# lena = mpimg.imread('./assets/WARNING.png')
-#
-# print("WARNING: IP: {0}\tMAC: {1}认证失败！".format(TARGET_IP, TARGET_MAC))
-# plt.rcParams['font.sans-serif'] = ['Microsoft YaHei']
-# plt.rcParams['axes.unicode_minus'] = False
-#
-# fig = plt.figure(figsize=(5, 5))
-# fig.canvas.set_window_title('警告！')
-# plt.imshow(lena)
-# plt.axis('off')
-# plt.title("IP:{0}   MAC:{1}认证失败！".format(TARGET_IP, TARGET_MAC), color='red', fontsize='large')
-# plt.show()
+print("---检测结果---")
+print("准确率: {0}%".format(round(right_count / (right_count + error_count) * 100, 2)))
+print("错误率: {0}%".format(round(error_count / (right_count + error_count) * 100, 2)))
+print("平均检测时间: {0} ms".format(np.mean(test_time) / 1000))

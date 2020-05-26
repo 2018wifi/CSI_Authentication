@@ -34,7 +34,7 @@ if __name__ == '__main__':
             p_num = min(get_file_num(path3), 200)
             for p in range(1, p_num + 1):
                 total += 1
-                print(total)
+                # print(total)
         if c in [1, 2, 4]:
             NPY_SIZE = 50
         elif c in [3, 5, 6]:
@@ -67,7 +67,7 @@ if __name__ == '__main__':
                         temp_x[k][p] = temp_x[k][p] / CSI_max
                 x[cnt] = temp_x
                 y[cnt][temp_y] = 1
-                print(c, temp_y, y[cnt])
+                # print(c, temp_y, y[cnt])
                 cnt += 1
 
 

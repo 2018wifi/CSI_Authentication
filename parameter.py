@@ -31,15 +31,12 @@ MAX_SEND_UDP_TIME = 10                    # 发送UDP的持续时间（相当于
 
 # CNN_pytorch
 NPY_SIZE = 150                 # 每个npy包含的CSI数组个数
-
-
-# model
 T_NUM = 9 # 位置数量
 T_SIZE = 50 # 每个位置的包的数量
 LOAD_EXISTING_DATA = False
 SAVE_DATA = True
 INPUT_SIZE = FP_SIZE * NFFT
-VAL_SIZE = 50                   # VAL_SIZE is validation size
+VAL_SIZE = 0                    # VAL_SIZE is validation size
 HIDDEN_WIDTH = 50               # HIDDEN_WIDTH is the width of hidden dimension; OUTPUT_SIZE is output dimension;
 OUTPUT_SIZE = T_NUM
 epochs = 5000
