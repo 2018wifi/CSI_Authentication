@@ -38,5 +38,9 @@ def detect(matrix):
     time_beg = int(round(time.time() * 1000000))
     result = model(data)
     time_end = int(round(time.time() * 1000000))
-    print(result)
-    return result.argmax(), float(torch.var(result)), time_end - time_beg         # 最可能的点，各点的结果方差，检测时间
+    print(list(result[0]))
+    return result.argmax(), get_prob(result), time_end - time_beg         # 最可能的点，各点的结果方差，检测时间
+
+def get_prob(result):
+    exps = np.exp(result[0] - np.max(result[0]))
+    return exps / np.sum(exps)
