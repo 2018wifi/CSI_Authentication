@@ -16,6 +16,7 @@ class Net(torch.nn.Module):
         self.fc1 = nn.Linear(16 * ((((HEIGH-4)//2)-4)//2) * ((((WIDTH-4)//2)-4)//2), 120)
         self.fc2 = nn.Linear(120, 84)
         self.fc3 = nn.Linear(84, OUTPUT_SIZE)
+        self.soft = nn.Softmax(dim=1)
         self.dropout = torch.nn.Dropout(p=0.2)
 
 
@@ -26,4 +27,5 @@ class Net(torch.nn.Module):
         x = self.dropout(functional.relu(self.fc1(x)))
         x = self.dropout(functional.relu(self.fc2(x)))
         x = self.fc3(x)
+        x = self.soft(x)
         return x

@@ -1,13 +1,6 @@
-from symbol import parameters
-
 import torch
-import torch.nn as nn
-import torch.nn.functional as functional
 import numpy as np
-import random
 import os
-import sys
-import time
 import torch.optim.lr_scheduler as lr_scheduler
 from parameter import *
 from model import Net, device
@@ -96,6 +89,7 @@ if __name__ == '__main__':
             optimizer.zero_grad()
             # Forward pass: Compute predicted y by passing x to the model
             y_pred = model(x)
+            print(y_pred)
             # Compute and print loss
             loss = criterion(y_pred, torch.max(y, 1)[1])
             if t % 10 == 9:
