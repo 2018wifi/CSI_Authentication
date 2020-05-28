@@ -1,24 +1,21 @@
-from get_fingerprint import get_fingerprint
 from parameter import *
-# import matplotlib.pyplot as plt
-# import matplotlib.image as mpimg
 from detect import detect
 import numpy as np
 import torch
 
-right_count = 0
-error_count = 0
-test_time = []              # us
 
-MIN_THR = 1e-7
+MIN_THR = 1e-10
 MAX_THR = 0.9999
+MAX_MIN_THR = 0.99999
 
 '''合法检测'''
 
 def legal_test():
-    global right_count
-    global error_count
-    global test_time
+    right_count = 0
+    error_count = 0
+    test_time = []          # us
+
+    print("---合法集检测---")
     for t in range(1, 9):
         for i in range(201, 251):
             path = "./local/T{0}/T{0}_{1}.npy".format(t, i)
@@ -40,14 +37,15 @@ def legal_test():
             max_point = torch.argmax(result)
             min_point = torch.argmin(result)
             result_list = result.tolist()[0]
-            # print("最可能点:{0}, 最可能点概率: {1}\t最不可能点: {2}, 最不可能点概率: {3}".format(max_point, result.tolist()[0][max_point], min_point, result.tolist()[0][min_point]))
+            # print("极差: {}\t 方差: {}\t".format(result.tolist()[0][max_point] - result.tolist()[0][min_point], torch.var(result)))
 
-            if result_list[max_point] < MAX_THR and result_list[min_point] < MIN_THR:
-                error_count += 1
-                # print("不合法")
-            else:
+            if result_list[max_point] > MAX_THR or result_list[min_point] > MIN_THR or result_list[max_point] - result_list[min_point] > MAX_MIN_THR:
                 right_count += 1
                 # print("合法")
+            else:
+                error_count += 1
+                # print("不合法")
+
             test_time.append(time_cost)
 
     print("---合法集检测结果---")
@@ -57,9 +55,11 @@ def legal_test():
 '''不合法检测'''
 
 def illegal_test():
-    global right_count
-    global error_count
-    global test_time
+    right_count = 0
+    error_count = 0
+    test_time = []
+
+    print("---不合法集检测---")
     for i in range(1, 201):
         path = "./test/data/{0}.npy".format(i)
         matrix = np.load(path)
@@ -79,23 +79,23 @@ def illegal_test():
         max_point = torch.argmax(result)
         min_point = torch.argmin(result)
         result_list = result.tolist()[0]
+        # print("极差: {}\t 方差: {}\t".format(result.tolist()[0][max_point] - result.tolist()[0][min_point], torch.var(result)))
         # print("最可能点:{0}, 最可能点概率: {1}\t最不可能点: {2}, 最不可能点概率: {3}".format(max_point, result.tolist()[0][max_point], min_point, result.tolist()[0][min_point]))
 
-        if result_list[max_point] < MAX_THR and result_list[min_point] < MIN_THR:
+        if result_list[max_point] > MAX_THR or result_list[min_point] > MIN_THR or result_list[max_point] - result_list[min_point] > MAX_MIN_THR:
+            right_count += 1
+        # print("通过")
+        # print("最可能点:{0}, 最可能点概率: {1}\t最不可能点: {2}, 最不可能点概率: {3}".format(max_point, result.tolist()[0][max_point], min_point, result.tolist()[0][min_point]))
+        else:
             error_count += 1
             # print("不通过")
-        else:
-            right_count += 1
-            # print("通过")
-            print("最可能点:{0}, 最可能点概率: {1}\t最不可能点: {2}, 最不可能点概率: {3}".format(max_point, result.tolist()[0][max_point], min_point, result.tolist()[0][min_point]))
+
         test_time.append(time_cost)
 
     print("---不合法集检测结果---")
     print("不合法集的通过率为: {}, 不通过率为: {}".format(right_count / (right_count + error_count), error_count / (right_count + error_count)))
     print("平均检测时间: {0} ms".format(np.mean(test_time) / 1000))
 
-# legal_test()
-# right_count = 0
-# error_count = 0
-# test_time = []
+legal_test()
+
 illegal_test()
