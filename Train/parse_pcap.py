@@ -146,8 +146,8 @@ class Pcap:
 if __name__ == '__main__':
     pre_path = "../test/data_pcap/pi"
     for i in range(1, 101):
-        path1 = pre_path + "1" + "/T1_{0}".format(str(i)) + ".pcap"
-        path2 = pre_path + "2" + "/T1_{0}".format(str(i)) + ".pcap"
+        path1 = pre_path + "2" + "/T2_{0}".format(str(i)) + ".pcap"
+        path2 = pre_path + "2" + "/T2_{0}".format(str(i)) + ".pcap"
         path3 = pre_path + "3" + "/T3_{0}".format(str(i)) + ".pcap"
         print("Parsing ", i)
         pcap1 = Pcap(1, i, path1)
@@ -161,10 +161,10 @@ if __name__ == '__main__':
         con_matrix[0:50] = pcap1.csi_matrix[0:50]
         con_matrix[50:100] = pcap2.csi_matrix[0:50]
         con_matrix[100:150] = pcap3.csi_matrix[0:50]
-        with open("../test/data/" + str(i) + ".npy",
+        with open("../test/data/" + str(i + 100) + ".npy",
                   'wb'):
             pass
-        np.save("../test/data/" + str(i) + ".npy", con_matrix)
+        np.save("../test/data/" + str(i + 100) + ".npy", con_matrix)
 
 
     # for i in range(1, 10):           # 点

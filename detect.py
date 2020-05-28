@@ -32,15 +32,9 @@ def detect(matrix):
     model.load_state_dict(torch.load(model_path))
     # print('模型加载成功', model)
 
-
     data = matrix.to(device).float()
     data = torch.reshape(data, (1, 1, FP_SIZE, NFFT))
     time_beg = int(round(time.time() * 1000000))
     result = model(data)
     time_end = int(round(time.time() * 1000000))
-    print(list(result[0]))
-    return result.argmax(), get_prob(result), time_end - time_beg         # 最可能的点，各点的结果方差，检测时间
-
-def get_prob(result):
-    exps = np.exp(result[0] - np.max(result[0]))
-    return exps / np.sum(exps)
+    return result, time_end - time_beg         # 最可能的点，检测时间，所有结果
