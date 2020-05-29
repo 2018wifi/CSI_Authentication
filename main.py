@@ -2,6 +2,7 @@ import socket
 from parameter import *
 from get_fingerprint import get_fingerprint
 from detect import detect
+import numpy as np
 import matplotlib.pyplot as plt
 import matplotlib.image as mpimg
 
@@ -32,6 +33,9 @@ if __name__ == '__main__':
 
             # 在此也可以给远程主机发送警告
         else:
+            with open("./temp/last_fingerprint.npy", 'wb'):
+                pass
+            np.save("./temp/last_fingerprint.npy", matrix)
             print("新主机认证成功")
 
     # tcp_socket.close()

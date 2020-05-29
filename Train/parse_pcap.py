@@ -144,27 +144,27 @@ class Pcap:
 
 
 if __name__ == '__main__':
-    pre_path = "../test/data_pcap/pi"
-    for i in range(1, 101):
-        path1 = pre_path + "2" + "/T2_{0}".format(str(i)) + ".pcap"
-        path2 = pre_path + "2" + "/T2_{0}".format(str(i)) + ".pcap"
-        path3 = pre_path + "3" + "/T3_{0}".format(str(i)) + ".pcap"
-        print("Parsing ", i)
-        pcap1 = Pcap(1, i, path1)
-        pcap2 = Pcap(2, i, path2)
-        pcap3 = Pcap(3, i, path3)
-        pcap1.parse()
-        pcap2.parse()
-        pcap3.parse()
+    pre_path = "../local_illegal/data_pcap/pi{0}/T{1}/T{1}_{2}.pcap"
+    for t in range(1, 10):
+        for i in range(1, 51):
+            path1 = pre_path.format(1, t, i)
+            path2 = pre_path.format(1, t, i)
+            path3 = pre_path.format(1, t, i)
+            print("Parsing ", i)
+            pcap1 = Pcap(1, i, path1)
+            pcap2 = Pcap(2, i, path2)
+            pcap3 = Pcap(3, i, path3)
+            pcap1.parse()
+            pcap2.parse()
+            pcap3.parse()
 
-        con_matrix = np.zeros((150, 64), dtype=np.complex)
-        con_matrix[0:50] = pcap1.csi_matrix[0:50]
-        con_matrix[50:100] = pcap2.csi_matrix[0:50]
-        con_matrix[100:150] = pcap3.csi_matrix[0:50]
-        with open("../test/data/" + str(i + 100) + ".npy",
-                  'wb'):
-            pass
-        np.save("../test/data/" + str(i + 100) + ".npy", con_matrix)
+            con_matrix = np.zeros((150, 64), dtype=np.complex)
+            con_matrix[0:50] = pcap1.csi_matrix[0:50]
+            con_matrix[50:100] = pcap2.csi_matrix[0:50]
+            con_matrix[100:150] = pcap3.csi_matrix[0:50]
+            with open("../local_illegal/data/T{0}_{1}.npy".format(t, i), 'wb'):
+                pass
+            np.save("../local_illegal/data/T{0}_{1}.npy".format(t, i), con_matrix)
 
 
     # for i in range(1, 10):           # 点
